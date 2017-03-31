@@ -29,6 +29,8 @@ func TestCharger_Charge(t *testing.T) {
 	// Configure the main application charger.
 	main := charger.New()
 
+	// We look up the values in the environment by default,
+	// but we overwrite the default behaviour for tests.
 	main.SetMapFunc(func(key string) (string, error) {
 		switch key {
 		case "SERVICE_NAME":
