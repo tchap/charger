@@ -108,7 +108,7 @@ func TestCharger_Charge(t *testing.T) {
 		ServiceName: "charger",
 		TaskSlot:    2,
 		LogLevel:    "debug",
-		MQTT: {
+		MQTT: &MQTTConfig{
 			ClientID: "charger.2-" + rnd,
 			Username: "charger",
 			Password: "secret",
