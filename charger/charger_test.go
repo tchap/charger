@@ -2,6 +2,7 @@ package charger_test
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/tchap/go-charger/charger"
@@ -41,6 +42,10 @@ func TestCharger_Charge(t *testing.T) {
 		}
 	})
 
+	main.AddTemplateFunc("rand", func(length uint) string {
+		return strings.Repeat("R", length)
+	})
+
 	main.Add(charger.String{
 		Name:     "SERVICE_NAME",
 		Required: true,
@@ -60,7 +65,7 @@ func TestCharger_Charge(t *testing.T) {
 
 	mqtt.Add(charger.String{
 		Name:     "CLIENT_ID",
-		Default:  `{{ get "SERVICE_NAME" }}.{{ get "TASK_SLOT" }}-RAND`,
+		Default:  `{{ get "SERVICE_NAME" }}.{{ get "TASK_SLOT" }}-{{ rand 6 }}`,
 		Required: true,
 	})
 
@@ -87,7 +92,7 @@ func TestCharger_Charge(t *testing.T) {
 		TaskSlot:    2,
 		LogLevel:    "debug",
 		MQTT: {
-			ClientID: "charger.2-RAND",
+			ClientID: "charger.2-RRRRRR",
 			Username: "charger",
 			Password: "secret",
 		},
