@@ -2,6 +2,7 @@ package charger_test
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"reflect"
 	"strings"
 	"testing"
@@ -25,7 +26,7 @@ func TestCharger_Charge(t *testing.T) {
 		MQTT        *MQTTConfig `charger:"MQTT"`
 	}
 
-	// Configure a charger.
+	// Configure the main application charger.
 	main := charger.New()
 
 	main.SetMapFunc(func(key string) (string, error) {
@@ -36,8 +37,6 @@ func TestCharger_Charge(t *testing.T) {
 			return "2", nil
 		case "LOG_LEVEL":
 			return "debug", nil
-		case "MQTT_PASSWORD":
-			return "secret", nil
 		default:
 			return "", charger.ErrNotFound
 		}
@@ -58,13 +57,23 @@ func TestCharger_Charge(t *testing.T) {
 		Default: "info",
 	})
 
+	// Configure the MQTT subcharger.
 	mqtt := main.WithPrefix("MQTT_")
+
+	mqtt.SetMapFunc(func(key string) (string, error) {
+		switch key {
+		case "PASSWORD":
+			return "secret", nil
+		default:
+			return "", charger.ErrNotFound
+		}
+	})
 
 	var rnd string
 	mqtt.AddTemplateFunc("rand", func(length uint) string {
 		raw := make([]byte, (8*length)/16)
 		if err := rand.Read(raw); err != nil {
-			main.Error(errors.Wrap(err), "rand template function failed")
+			mqtt.Error(errors.Wrap(err), "rand template function failed")
 			return
 		}
 		rnd = hex.EncodeToString(raw)
