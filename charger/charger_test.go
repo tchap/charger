@@ -26,18 +26,18 @@ func TestCharger_Charge(t *testing.T) {
 	// Configure a charger.
 	main := charger.New()
 
-	main.SetMapFunc(func(key string) (bool, string) {
+	main.SetMapFunc(func(key string) (string, error) {
 		switch key {
 		case "SERVICE_NAME":
-			return "charger", true
+			return "charger", nil
 		case "TASK_SLOT":
-			return "2", true
+			return "2", nil
 		case "LOG_LEVEL":
-			return "debug", true
+			return "debug", nil
 		case "MQTT_PASSWORD":
-			return "secret", true
+			return "secret", nil
 		default:
-			return "", false
+			return "", charger.ErrNotFound
 		}
 	})
 
@@ -60,13 +60,13 @@ func TestCharger_Charge(t *testing.T) {
 
 	mqtt.Add(charger.String{
 		Name:     "CLIENT_ID",
-		Template: `{{ get "SERVICE_NAME" }}.{{ get "TASK_SLOT" }}-RAND`,
+		Default:  `{{ get "SERVICE_NAME" }}.{{ get "TASK_SLOT" }}-RAND`,
 		Required: true,
 	})
 
 	mqtt.Add(charger.String{
 		Name:     "USERNAME",
-		Template: `{{ get "SERVICE_NAME" }}`,
+		Default:  `{{ get "SERVICE_NAME" }}`,
 		Required: true,
 	})
 
