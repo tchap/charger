@@ -1,6 +1,7 @@
 package charger_test
 
 import (
+	"crypto/rand"
 	"reflect"
 	"strings"
 	"testing"
@@ -42,8 +43,15 @@ func TestCharger_Charge(t *testing.T) {
 		}
 	})
 
+	var rnd string
 	main.AddTemplateFunc("rand", func(length uint) string {
-		return strings.Repeat("R", length)
+		raw := make([]byte, (8*length)/16)
+		if err := rand.Read(raw); err != nil {
+			main.Error(errors.Wrap(err), "rand template function failed")
+			return
+		}
+		rnd = hex.EncodeToString(raw)
+		return rnd
 	})
 
 	main.Add(charger.String{
@@ -92,7 +100,7 @@ func TestCharger_Charge(t *testing.T) {
 		TaskSlot:    2,
 		LogLevel:    "debug",
 		MQTT: {
-			ClientID: "charger.2-RRRRRR",
+			ClientID: "charger.2-" + rnd,
 			Username: "charger",
 			Password: "secret",
 		},
