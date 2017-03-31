@@ -43,17 +43,6 @@ func TestCharger_Charge(t *testing.T) {
 		}
 	})
 
-	var rnd string
-	main.AddTemplateFunc("rand", func(length uint) string {
-		raw := make([]byte, (8*length)/16)
-		if err := rand.Read(raw); err != nil {
-			main.Error(errors.Wrap(err), "rand template function failed")
-			return
-		}
-		rnd = hex.EncodeToString(raw)
-		return rnd
-	})
-
 	main.Add(charger.String{
 		Name:     "SERVICE_NAME",
 		Required: true,
@@ -70,6 +59,17 @@ func TestCharger_Charge(t *testing.T) {
 	})
 
 	mqtt := main.WithPrefix("MQTT_")
+
+	var rnd string
+	mqtt.AddTemplateFunc("rand", func(length uint) string {
+		raw := make([]byte, (8*length)/16)
+		if err := rand.Read(raw); err != nil {
+			main.Error(errors.Wrap(err), "rand template function failed")
+			return
+		}
+		rnd = hex.EncodeToString(raw)
+		return rnd
+	})
 
 	mqtt.Add(charger.String{
 		Name:     "CLIENT_ID",
