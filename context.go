@@ -4,7 +4,7 @@ type Context struct {
 	records map[string]*keyRecord
 }
 
-func (ctx *Context) render() error {
+func (ctx *Context) RenderValues() error {
 	deps := make(map[string][]string, len(ctx.records))
 
 	for name, record := range ctx.records {
