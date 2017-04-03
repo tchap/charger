@@ -18,3 +18,11 @@ What I needed was to implement a help command for my executable placed as an
 entry point in a container that would list all significant environment
 variables with their default values. In this scenario it is not enough to have
 some values compiled in, we need to take in the container defaults somehow.
+
+## Ideas
+
+[ ] Separate charging into getting/rewriting/rendering values and make sure
+    users can hook into the process at any point.
+[ ] Hook into process by either registering a global fuction for the phase
+    or implement particular interface by the key spec object.
+[ ] Must support charging objects without tags.
