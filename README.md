@@ -26,3 +26,5 @@ some values compiled in, we need to take in the container defaults somehow.
 - [ ] Hook into process by either registering a global fuction for the phase
       or implement particular interface by the key spec object.
 - [ ] Must support charging objects without tags.
+- [ ] Value templates that can refer to other values (through interface?).
+- [ ] Hyerarchical key specification, e.g. `MQTT_` prefix.
