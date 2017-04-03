@@ -35,7 +35,7 @@ func TestTemplateRenderer_Dependencies(t *testing.T) {
 
 		// Compare the dep lists.
 		if !reflect.DeepEqual(deps, c.deps) {
-			t.Errorf("case %v: dependency list mismatch; expected %#v, got %#v", i, c.deps, deps)
+			t.Errorf("case %v: dependency list mismatch; expected %#v, got %#v", i+1, c.deps, deps)
 		}
 	}
 }
@@ -75,7 +75,7 @@ func TestTemplateRenderer_Render(t *testing.T) {
 
 		// Check.
 		if out != c.out {
-			t.Errorf("case %v: renderer output mismatch; expected %v, got %v", i, c.out, out)
+			t.Errorf("case %v: renderer output mismatch; expected %v, got %v", i+1, c.out, out)
 		}
 	}
 }
