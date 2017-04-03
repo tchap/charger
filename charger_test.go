@@ -49,7 +49,7 @@ func TestCharger_Charge(t *testing.T) {
 		SecretPrefix    = "secret:"
 		SecretsDirector = "/run/secrets"
 	)
-	main.AppendValueRewriter(changer.RewriteValueFunc(func(value string) string {
+	main.UseValueRewriter(changer.RewriteValueFunc(func(value string) string {
 		// Nothing to do in case there is no secret prefix.
 		if !strings.HasPrefix(value, SecretPrefix) {
 			return value
