@@ -29,9 +29,8 @@ func TestCharger_Charge(t *testing.T) {
 	// Configure the main application charger.
 	main := charger.New()
 
-	// We look up the values in the environment by default,
-	// but we overwrite the default behaviour for tests.
-	main.SetMapFunc(func(key string) (string, error) {
+	// We want to use a lookup function for tests.
+	main.AppendLookuper(charger.LookupFunc(func(key string) (string, error) {
 		switch key {
 		case "SERVICE_NAME":
 			return "charger", nil
@@ -42,7 +41,7 @@ func TestCharger_Charge(t *testing.T) {
 		default:
 			return "", charger.ErrNotFound
 		}
-	})
+	}))
 
 	main.Add(charger.String{
 		Name:     "SERVICE_NAME",
@@ -61,18 +60,17 @@ func TestCharger_Charge(t *testing.T) {
 
 	// Configure the MQTT subcharger.
 	mqtt := main.WithPrefix("MQTT_")
-
-	mqtt.SetMapFunc(func(key string) (string, error) {
+	mqtt.AppendLookuper(charger.LookupFunc(func(key string) (string, error) {
 		switch key {
 		case "PASSWORD":
 			return "secret", nil
 		default:
 			return "", charger.ErrNotFound
 		}
-	})
+	}))
 
 	var rnd string
-	mqtt.AddTemplateFunc("rand", func(length uint) string {
+	mqtt.RegisterTemplateFunc("rand", func(length uint) string {
 		raw := make([]byte, (8*length)/16)
 		if err := rand.Read(raw); err != nil {
 			mqtt.Error(errors.Wrap(err), "rand template function failed")
