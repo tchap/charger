@@ -29,3 +29,4 @@ some values compiled in, we need to take in the container defaults somehow.
 - [ ] Value templates that can refer to other values (through interface?).
 - [ ] Hyerarchical key specification, e.g. `MQTT_` prefix.
 - [ ] Method for dumping config help into an io.Writer.
+- [ ] Custom decoding methods, i.e. how to turn string into a custom type.
