@@ -11,8 +11,8 @@ func TestTemplateRenderer_Dependencies(t *testing.T) {
 	renderer := charger.NewTemplateRenderer()
 
 	cases := []struct {
-		tmpl string
-		deps []string
+		value string
+		deps  []string
 	}{
 		{`no deps at all`, nil},
 		{`no deps at all`, []string{}},
@@ -22,7 +22,7 @@ func TestTemplateRenderer_Dependencies(t *testing.T) {
 
 	for i, c := range cases {
 		// Get dependencies.
-		deps, err := renderer.Dependencies(c.tmpl)
+		deps, err := renderer.Dependencies(c.value)
 		if err != nil {
 			t.Error(err)
 			continue
@@ -36,6 +36,46 @@ func TestTemplateRenderer_Dependencies(t *testing.T) {
 		// Compare the dep lists.
 		if !reflect.DeepEqual(deps, c.deps) {
 			t.Errorf("case %v: dependency list mismatch; expected %#v, got %#v", i, c.deps, deps)
+		}
+	}
+}
+
+func TestTemplateRenderer_Render(t *testing.T) {
+	renderer := charger.NewTemplateRenderer()
+
+	cases := []struct {
+		in  string
+		out string
+	}{
+		{`no deps at all`, `no deps at all`},
+		{`{{ get "A" }}`, `A-value`},
+		{`{{ get "A" }}-{{ get "B" }}`, `A-value-B-value`},
+		{`{{ get "C" }}`, ``},
+		{`{{ get "C" }}-suffix`, `-suffix`},
+	}
+
+	getter := charger.GetterFunc(func(key string) string {
+		switch key {
+		case "A":
+			return "A-value"
+		case "B":
+			return "B-value"
+		default:
+			return ""
+		}
+	})
+
+	for i, c := range cases {
+		// Render.
+		out, err := renderer.Render(c.in, getter)
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+
+		// Check.
+		if out != c.out {
+			t.Errorf("case %v: renderer output mismatch; expected %v, got %v", i, c.out, out)
 		}
 	}
 }

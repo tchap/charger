@@ -1,6 +1,7 @@
 package charger
 
 import (
+	"bytes"
 	"io/ioutil"
 	"text/template"
 )
@@ -15,7 +16,7 @@ func NewTemplateRenderer() *TemplateRenderer {
 	}
 }
 
-func (renderer *TemplateRenderer) Dependencies(tmpl string) ([]string, error) {
+func (renderer *TemplateRenderer) Dependencies(value string) ([]string, error) {
 	var deps []string
 
 	funcMap := map[string]interface{}{
@@ -30,7 +31,7 @@ func (renderer *TemplateRenderer) Dependencies(tmpl string) ([]string, error) {
 		},
 	}
 
-	t, err := template.New("").Funcs(funcMap).Parse(tmpl)
+	t, err := template.New("").Funcs(funcMap).Parse(value)
 	if err != nil {
 		return nil, err
 	}
@@ -42,6 +43,20 @@ func (renderer *TemplateRenderer) Dependencies(tmpl string) ([]string, error) {
 	return deps, nil
 }
 
-func (renderer *TemplateRenderer) Render(ctx *Context, tmpl string) (string, error) {
-	panic("not implemented")
+func (renderer *TemplateRenderer) Render(value string, getter Getter) (string, error) {
+	renderer.FuncMap["get"] = func(key string) string {
+		return getter.Get(key)
+	}
+
+	t, err := template.New("").Funcs(renderer.FuncMap).Parse(value)
+	if err != nil {
+		return "", err
+	}
+
+	var out bytes.Buffer
+	if err := t.Execute(&out, nil); err != nil {
+		return "", err
+	}
+
+	return out.String(), nil
 }
