@@ -28,3 +28,4 @@ some values compiled in, we need to take in the container defaults somehow.
 - [ ] Must support charging objects without tags.
 - [ ] Value templates that can refer to other values (through interface?).
 - [ ] Hyerarchical key specification, e.g. `MQTT_` prefix.
+- [ ] Method for dumping config help into an io.Writer.
