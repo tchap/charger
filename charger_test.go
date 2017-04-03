@@ -29,7 +29,7 @@ func TestCharger_Charge(t *testing.T) {
 	// Configure the main application charger.
 	main := charger.New()
 
-	// We want to use a lookup function for tests.
+	// Register a custom lookuper that simply returns a value based on a switch statement.
 	main.AppendLookuper(charger.LookupFunc(func(key string) (string, error) {
 		switch key {
 		case "SERVICE_NAME":
@@ -41,6 +41,33 @@ func TestCharger_Charge(t *testing.T) {
 		default:
 			return "", charger.ErrNotFound
 		}
+	}))
+
+	// Register a custom rewriter to handle Docker secrets.
+	// Replaces `secret:key` with the content of `/run/secrets/<key>`.
+	const (
+		SecretPrefix    = "secret:"
+		SecretsDirector = "/run/secrets"
+	)
+	main.AppendValueRewriter(changer.RewriteValueFunc(func(value string) string {
+		// Nothing to do in case there is no secret prefix.
+		if !strings.HasPrefix(value, SecretPrefix) {
+			return value
+		}
+
+		// Generate the secret path.
+		filename := value[len(SecretPrefix):]
+		path := filepath.Join(SecretsDirectory, filename)
+
+		// Read the actual secret value.
+		content, err := ioutil.ReadFile(path)
+		if err != nil {
+			main.Error(errors.Wrap(err, "failed to read a secrets file"))
+			return value
+		}
+
+		// Return the secret value.
+		return string(content)
 	}))
 
 	main.Add(charger.String{
