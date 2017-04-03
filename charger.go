@@ -100,7 +100,7 @@ KeyLoop:
 		}
 	}
 
-	if err := ctx.render(); err != nil {
+	if err := ctx.RenderValues(); err != nil {
 		return nil, err
 	}
 
