@@ -96,5 +96,57 @@ KeyLoop:
 		}
 	}
 
+	if err := ctx.render(); err != nil {
+		return nil, err
+	}
+
 	return ctx, nil
+}
+
+type Renderer interface {
+	Dependencies() ([]string, error)
+	Render(*Context, string) error
+}
+
+func (ctx *Context) render() error {
+	deps := make(map[string]*[]string, len(ctx.keys))
+
+	for name, record := range ctx.keys {
+		depList, err := record.Key.Renderer().Dependencies()
+		if err != nil {
+			return err
+		}
+
+		deps[name] = &depList
+	}
+
+	fulfilled := make(map[string]struct{}, len(ctx.keys))
+
+	for {
+		if len(fulfilled) == len(ctx.keys) {
+			return nil
+		}
+
+		var removed bool
+
+	DepLoop:
+		for name, depList := range deps {
+			if _, ok := fulfilled[name]; ok {
+				continue
+			}
+
+			for _, dep := range depList {
+				if _, ok := fulfilled[dep]; !ok {
+					continue DepLoop
+				}
+			}
+
+			fulfilled[name] = struct{}{}
+			removed = true
+		}
+
+		if !removed {
+			return ErrCyrcleDetected
+		}
+	}
 }
