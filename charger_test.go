@@ -14,16 +14,17 @@ func TestCharger_Charge(t *testing.T) {
 	// Specify the configuration struct to charge.
 	// This is used later, but it is good to have the idea.
 	type MQTTConfig struct {
-		ClientID string `charger:"CLIENT_ID"`
-		Username string `charger:"USERNAME"`
-		Password string `charger:"PASSWORD"`
+		ClientID string
+		Username string
+		Password string
 	}
 
 	type Config struct {
-		ServiceName string      `charger:"SERVICE_NAME"`
-		TaskSlot    int         `charger:"TASK_SLOT"`
-		LogLevel    string      `charger:"LOG_LEVEL"`
-		MQTT        *MQTTConfig `charger:"MQTT"`
+		ServiceName string `charger:"SERVICE_NAME"`
+		TaskSlot    int    `charger:"TASK_SLOT"`
+		LogLevel    string `charger:"LOG_LEVEL"`
+
+		MQTT *MQTTConfig
 	}
 
 	// Configure the main application charger.
