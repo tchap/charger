@@ -103,16 +103,11 @@ KeyLoop:
 	return ctx, nil
 }
 
-type Renderer interface {
-	Dependencies() ([]string, error)
-	Render(*Context, string) error
-}
-
 func (ctx *Context) render() error {
 	deps := make(map[string]*[]string, len(ctx.keys))
 
 	for name, record := range ctx.keys {
-		depList, err := record.Key.Renderer().Dependencies()
+		depList, err := record.Key.Renderer().Dependencies(record.Value)
 		if err != nil {
 			return err
 		}
