@@ -120,6 +120,7 @@ func (ch *Charger) GatherValues() (*Context, error) {
 		if ctx.Renderer == nil {
 			return nil, errors.Errorf("renderer not set for %v", ctx.Key.Name())
 		}
+
 	}
 }
 
