@@ -1,54 +1,73 @@
 package charger
 
-import (
-	"errors"
-)
-
-var (
-	ErrKeyTaken       = errors.New("key already taken")
-	ErrCyrcleDetected = errors.New("cyrcle detected")
-	ErrNotFound       = errors.New("not found")
-)
-
-type ErrRequired struct {
-	Name string
-}
-
-func (err *ErrRequired) Error() string {
-	return "key required but not set: " + err.Name
-}
-
-type Lookuper interface {
-	Lookup(key string) (string, error)
-}
-
-type Key interface {
-	GetName() string
-	GetDefault() (string, bool)
-	GetRequired() bool
-
-	GetLookupers() []Lookuper
-	GetRenderer() Renderer
-}
-
-type keyRecord struct {
-	Key   Key
-	Value string
-}
-
 type Charger struct {
-	records   map[string]*keyRecord
+	domain   string
+	children map[string]*Charger
+
+	keys       []Key
+	keyNameSet map[string]struct{}
+
 	lookupers []Lookuper
+
+	renderer Renderer
+}
+
+func New() *Charger {
+	return &Charger{
+		children:   make(map[string]*Charger),
+		keyNameSet: make(map[string]struct{}),
+	}
+}
+
+func (ch *Charger) PushLookuper(lookuper Lookuper) {
+	ch.lookupers = append([]Lookuper{lookuper}, ch.lookupers...)
+}
+
+func (ch *Charger) AppendLookuper(lookuper Lookuper) {
+	ch.lookupers = append(ch.lookupers, lookuper)
+}
+
+func (ch *Charger) SetRenderer(renderer Renderer) {
+	ch.renderer = renderer
+}
+
+func (ch *Charger) Subdomain(domain string) (*Charger, error) {
+	if domain == "" {
+		return nil, ErrEmptyDomain
+	}
+
+	if _, ok := ch.keyNameSet[name]; ok {
+		return nil, ErrKeyTaken
+	}
+	if _, ok := ch.children[domain]; ok {
+		return nil, ErrKeyTaken
+	}
+
+	sub := NewCharger()
+	sub.domain = domain
+	ch.children[domain] = sub
+	return sub, nil
+}
+
+func (ch *Charger) MustSubdomain(domain string) *Charger {
+	sub, err := ch.Subdomain(domain)
+	if err != nil {
+		panic(err)
+	}
+	return sub
 }
 
 func (ch *Charger) AddKey(key Key) error {
-	name := key.GetName()
-
-	if _, ok := ch.records[name]; ok {
+	name := key.Name()
+	if _, ok := ch.keyNameSet[name]; ok {
+		return ErrKeyTaken
+	}
+	if _, ok := ch.children[name]; ok {
 		return ErrKeyTaken
 	}
 
-	ch.records[name] = &keyRecord{key, ""}
+	ch.keys = append(ch.keys, Key)
+	ch.keyNameSet[name] = struct{}{}
 	return nil
 }
 
