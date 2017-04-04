@@ -1,6 +1,7 @@
 package charger
 
 type Charger struct {
+	parent   *Charger
 	domain   string
 	children map[string]*Charger
 
@@ -77,51 +78,74 @@ func (ch *Charger) MustAddKey(key Key) {
 	}
 }
 
+func (ch *Charger) gatherLookupers() []Lookuper {
+	lookupers := ch.lookupers
+	if ch.parent != nil {
+		lookupers = append(lookupers, ch.parent.gatherLookupers())
+	}
+	return lookupers
+}
+
+func (ch *Charger) getRenderer() Renderer {
+	if ch.renderer != nil {
+		return renderer
+	}
+	if ch.parent != nil {
+		return ch.parent.getRenderer()
+	}
+	return nil
+}
+
+type keyCtx struct {
+	Key       Key
+	Lookupers []Lookuper
+	Renderer  Renderer
+}
+
 func (ch *Charger) GatherValues() (*Context, error) {
-	ctx := &Context{
-		records: make(map[string]*keyRecord, len(ch.records)),
+	var (
+		lookupers []Lookuper
+		renderer  Renderer
+	)
+	if ch.parent != nil {
+		lookupers = ch.parent.gatherLookupers()
+		renderer = ch.parent.getRenderer()
 	}
+	ctxs := ch.gatherKeyContexts(lookupers, renderer)
 
-KeyLoop:
-	for name, record := range ch.records {
-		for _, lookuper := range record.Key.GetLookupers() {
-			value, err := lookuper.Lookup(name)
-			switch err {
-			case nil:
-				ctx.records[name] = &keyRecord{record.Key, value}
-				continue KeyLoop
-			case ErrNotFound:
-			default:
-				return nil, err
-			}
+	for _, ctx := range ctxs {
+		if len(ctx.Lookupers) == 0 {
+			return nil, errors.Errorf("lookupers empty for %v", ctx.Key.Name())
 		}
-
-		for _, lookuper := range ch.lookupers {
-			value, err := lookuper.Lookup(name)
-			switch err {
-			case nil:
-				ctx.records[name] = &keyRecord{record.Key, value}
-				continue KeyLoop
-			case ErrNotFound:
-			default:
-				return nil, err
-			}
-		}
-
-		value, ok := record.Key.GetDefault()
-		if ok {
-			ctx.records[name] = &keyRecord{record.Key, value}
-			continue KeyLoop
-		}
-
-		if record.Key.GetRequired() {
-			return nil, &ErrRequired{name}
+		if ctx.Renderer == nil {
+			return nil, errors.Errorf("renderer not set for %v", ctx.Key.Name())
 		}
 	}
+}
 
-	if err := ctx.RenderValues(); err != nil {
-		return nil, err
+func (ch *Charger) gatherKeyContexts(parentLookupers []Lookuper, parentRenderer Renderer) []*keyCtx {
+	lookupers := append(ch.lookupers, parentLookupers)
+	renderer = ch.renderer
+	if renderer == nil {
+		renderer = parentRenderer
 	}
 
-	return ctx, nil
+	ctxs := make([]*keyCtx, 0, len(ch.keys))
+
+	for _, key := range ch.keys {
+		ctx := &keyCtx{key: key}
+		ctx.Lookupers = append(key.Lookupers(), lookupers)
+		if key.Renderer() != nil {
+			ctx.Renderer = key.Renderer()
+		} else {
+			ctx.Renderer = renderer
+		}
+		ctxs = append(ctxs, ctx)
+	}
+
+	for _, child := range ch.children {
+		ctxs = append(ctxs, child.gatherKeyContexts(lookupers, renderer))
+	}
+
+	return ctxs
 }
