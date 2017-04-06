@@ -30,3 +30,4 @@ some values compiled in, we need to take in the container defaults somehow.
 - [ ] Hyerarchical key specification, e.g. `MQTT_` prefix.
 - [ ] Method for dumping config help into an io.Writer.
 - [ ] Custom decoding methods, i.e. how to turn string into a custom type.
+- [ ] Environment variables aliasing, i.e. `LISTEN_PORT <-> PORT`.
