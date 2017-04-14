@@ -32,4 +32,3 @@ some values compiled in, we need to take in the container defaults somehow.
 - [ ] Custom decoding methods, i.e. how to turn string into a custom type.
 - [ ] Environment variables aliasing, i.e. `LISTEN_PORT <-> PORT`.
 - [ ] Variable domain, i.e. app, sysadmin etc, then allow filtering in help.
-- [ ] Some idea
