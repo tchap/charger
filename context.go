@@ -1,8 +1,6 @@
 package charger
 
-type Context struct {
-	records map[string]*keyRecord
-}
+type Context struct{}
 
 func (ctx *Context) RenderValues() error {
 	deps := make(map[string][]string, len(ctx.records))
